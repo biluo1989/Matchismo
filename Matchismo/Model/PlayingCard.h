@@ -8,6 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
+#import "Card.h"
+
 @interface PlayingCard : NSObject
+
+@property (nonatomic, strong) NSString *suit;
+@property (nonatomic) NSUInteger rank;
+
++ (NSArray *)validSuits;
++ (NSUInteger)maxRank;
 
 @end
