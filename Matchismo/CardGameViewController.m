@@ -8,29 +8,41 @@
 
 #import "CardGameViewController.h"
 #import "PlayingCardDeck.h"
+#import "CardMatchingGame.h"
 
 @interface CardGameViewController ()
 @property (weak, nonatomic) IBOutlet UILabel *flipsLabel;
 @property (nonatomic) int flipCount;
 @property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtoms;
-@property (nonatomic, strong) Deck *deck;
+@property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
+@property (nonatomic, strong) CardMatchingGame *game;
 @end
 
 @implementation CardGameViewController
 
-- (Deck *)deck
+- (CardMatchingGame *)game
 {
-    if (!_deck) _deck = [[PlayingCardDeck alloc] init];
-    return _deck;
+    if (!_game) _game = [[CardMatchingGame alloc] initWithCardCount:self.cardButtoms.count usingDeck:[[PlayingCardDeck alloc] init]];
+    return _game;
 }
 
 - (void)setCardButtoms:(NSArray *)cardButtoms
 {
     _cardButtoms = cardButtoms;
-    for (UIButton *cardButtom in cardButtoms){
-        Card *card = [self.deck drawRondomCard];
-        [cardButtom setTitle:card.contents forState:UIControlStateSelected];
+    [self updateUI];
+}
+
+- (void)updateUI
+{
+    for (UIButton *cardButton in self.cardButtoms) {
+        Card *card = [self.game cardAtIndex:[self.cardButtoms indexOfObject:cardButton]];
+        [cardButton setTitle:card.contents forState:UIControlStateSelected];
+        [cardButton setTitle:card.contents forState:UIControlStateSelected|UIControlStateDisabled];
+        cardButton.selected = card.isFaceUp;
+        cardButton.enabled = !card.unplayable;
+        cardButton.alpha = card.isUnpayable ? 0.3 : 1.0;
     }
+    self.scoreLabel.text = [NSString stringWithFormat:@"Score:%d", self.game.score];
 }
 
 - (void)setFlipCount:(int)flipCount
@@ -41,8 +53,9 @@
 
 - (IBAction)flipCard:(UIButton *)sender
 {
-    sender.selected = !sender.isSelected;
+    [self.game flipCardAtIndex:[self.cardButtoms indexOfObject:sender]];
     self.flipCount++;
+    [self updateUI];
 }
 
 @end
